@@ -1,0 +1,6 @@
+name: tests.yml
+on:
+  push:
+    branches: [ master ]
+
+jobs:
