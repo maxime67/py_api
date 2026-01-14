@@ -11,8 +11,8 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True  # Respecte la casse des variables
     )
-    DATABASE_POOL_SIZE = 100
-    DATABASE_POOL_RECYCLE = 100
+    DATABASE_POOL_SIZE: int = 100
+    DATABASE_POOL_RECYCLE: int = 100
 
     SEED_DATABASE: bool = True
 

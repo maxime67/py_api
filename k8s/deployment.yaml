@@ -66,3 +66,13 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: uv-cache
+              mountPath: /home/appuser/.cache/uv
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: uv-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
