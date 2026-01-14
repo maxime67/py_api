@@ -28,10 +28,8 @@ async def create_movie(db: AsyncSession, movie: movie_schemas.MovieCreate) -> mo
 
     current_year = datetime.datetime.now().year
 
-    if 1888 <= movie.year <= current_year:
-        return ValidationBLLException("L'année doit être cohérente")
-
-
+    if not (1888 <= movie.year <= current_year):
+        raise ValidationBLLException(f"L'année du film doit être comprise entre 1888 et {current_year}.")
 
     return await movie_repository.create_movie(db=db, movie=movie)
 

@@ -48,16 +48,22 @@ async def test_get_movie_by_id_not_found(mocker):
         await movie_service.get_movie_by_id(db=AsyncMock(), movie_id=999)
 
 
-async def test_create_movie_invalid_year():
+async def test_create_movie_invalid_year(mocker):
     """
     Vérifie que le service lève une ValidationError pour une année invalide.
     """
     # 1. Arrange
     movie_data = MovieCreate(title="The Future Movie", year=3000, genre_id=1, director_id=1)
 
+    # Mock the repository to ensure we never reach it
+    mock_repo = mocker.patch("app.repositories.movie.create_movie", new_callable=AsyncMock)
+
     # 2. Act & 3. Assert
     with pytest.raises(ValidationBLLException, match="L'année du film doit être comprise entre"):
         await movie_service.create_movie(db=AsyncMock(), movie=movie_data)
+
+    # Verify the repository was never called (validation should happen before)
+    mock_repo.assert_not_called()
 
 
 async def test_create_movie_empty_title():

@@ -2,20 +2,28 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
-# Configuration conditionnelle de l'engine
-if "sqlite+aiosqlite" in settings.DATABASE_URL:
-    # Configuration pour SQLite basé sur un fichier
+# Configuration conditionnelle de l'engine selon le type de BDD
+if "sqlite" in settings.DATABASE_URL:
+    # SQLite ne supporte pas le pooling ni check_same_thread en mode async
     engine = create_async_engine(
         settings.DATABASE_URL,
-        echo=True,
-        connect_args={"check_same_thread": False} # Requis pour SQLite
+        echo=settings.DATABASE_ECHO,
+        connect_args={"check_same_thread": False}
     )
 else:
-    # Configuration par défaut pour les autres BDD (ex: mysql+asyncmy, postgresql+asyncpg, etc.)
-    engine = create_async_engine(settings.DATABASE_URL, echo=True)
+    # Configuration pour PostgreSQL, MySQL, etc. avec pooling
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=settings.DATABASE_ECHO,
+        pool_size=settings.DATABASE_POOL_SIZE,
+        pool_recycle=settings.DATABASE_POOL_RECYCLE,
+        pool_pre_ping=True
+    )
 
-# SessionMaker pour créer des sessions asynchrones
-# expire_on_commit=False est important pour utiliser les objets après le commit dans un contexte async
 AsyncSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession, expire_on_commit=False
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
 )

@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.core.config import settings
-from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine, AsyncSessionLocal
 from app.api.routers.opinions import router as opinions_router
 from app.api.routers.movies import router as movies_router
@@ -17,33 +16,23 @@ from app.api.exception_handlers import (
 )
 from app.db.seeding import seed_db
 
-# Crée les tables dans la BDD au démarrage (pour le développement)
-# En production, on utiliserait un outil de migration comme Alembic.
 @asynccontextmanager
 async def lifespan(myapp: FastAPI):
+    # Création des tables au démarrage
     async with engine.begin() as conn:
-        #await conn.run_sync(Base.metadata.drop_all) Optionnel: pour repartir de zéro
         await conn.run_sync(Base.metadata.create_all)
-    async with AsyncSessionLocal() as session:
-        await seed_db(session)
+    # Seeding conditionnel (désactivé en production via SEED_DATABASE=false)
+    if settings.SEED_DATABASE:
+        async with AsyncSessionLocal() as session:
+            await seed_db(session)
     yield
 
 app = FastAPI(
-    title="API Filmothèque",
+    title=settings.PROJECT_NAME,
     description="Une API pour gérer une collection de films, réalisée avec FastAPI et SQLAlchemy async.",
     version="1.0.0",
     lifespan=lifespan
 )
-
-
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin).rstrip('/') for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
 app.include_router(opinions_router, prefix=settings.API_V1_STR, tags=["Opinions"])
 app.include_router(movies_router, prefix=settings.API_V1_STR, tags=["Movies"])
@@ -58,8 +47,12 @@ app.add_exception_handler(BLLException, bll_exception_handler)
 
 @app.get("/", tags=["Root"])
 def read_root():
-    """
-    Un endpoint simple pour vérifier que l'API est en ligne.
-    """
+    """Endpoint racine pour vérifier que l'API est en ligne."""
     return {"message": "Welcome to this fantastic API!"}
+
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    """Endpoint de santé pour Kubernetes liveness/readiness probes."""
+    return {"status": "healthy"}
 
