@@ -7,14 +7,14 @@ if "sqlite" in settings.DATABASE_URL:
     # SQLite ne supporte pas le pooling ni check_same_thread en mode async
     engine = create_async_engine(
         settings.DATABASE_URL,
-        echo=settings.DATABASE_ECHO,
+        echo=True,
         connect_args={"check_same_thread": False}
     )
 else:
     # Configuration pour PostgreSQL, MySQL, etc. avec pooling
     engine = create_async_engine(
         settings.DATABASE_URL,
-        echo=settings.DATABASE_ECHO,
+        echo=True,
         pool_size=settings.DATABASE_POOL_SIZE,
         pool_recycle=settings.DATABASE_POOL_RECYCLE,
         pool_pre_ping=True

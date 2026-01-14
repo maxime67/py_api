@@ -4,35 +4,30 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """
     Classe de configuration qui charge les variables d'environnement.
-    Toutes les variables peuvent être surchargées via l'environnement pour Kubernetes.
     """
+    # Configuration du modèle Pydantic
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=True
+        case_sensitive=True  # Respecte la casse des variables
     )
 
-    # Environnement d'exécution
-    ENVIRONMENT: str = "development"
-
-    # Paramètres du projet
-    PROJECT_NAME: str = "API Filmothèque"
-    API_V1_STR: str = "/api/v1"
-
-    # Configuration du serveur
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
-    WORKERS: int = 1
-    LOG_LEVEL: str = "info"
-
-    # Configuration de la base de données
-    DATABASE_URL: str = "sqlite+aiosqlite:///./local_dev.db"
-    DATABASE_ECHO: bool = False
-    DATABASE_POOL_SIZE: int = 5
-    DATABASE_POOL_RECYCLE: int = 3600
-
-    # Configuration du seeding
     SEED_DATABASE: bool = True
 
+    # Paramètres du projet
+    PROJECT_NAME: str = "FastAPI Project"
+    API_V1_STR: str = "/api/v1"
 
+    # Configuration de la base de données
+    # Le type hint `str` est suffisant, mais des types plus stricts peuvent être utilisés
+    DATABASE_URL: str = "sqlite+aiosqlite:///./local_dev.db"
+
+    # Configuration de la sécurité (JWT)
+    # SECRET_KEY: str
+    # ALGORITHM: str = "HS256"
+    #ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+
+
+# Création d'une instance unique des paramètres qui sera importée dans le reste de l'application
 settings = Settings()
